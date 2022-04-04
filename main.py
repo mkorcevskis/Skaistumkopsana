@@ -32,5 +32,9 @@ if __name__ == "__main__":
     for pakalpojums in pakalpojumi:
         print(pakalpojums)
         print("Pakalpojuma kopsumma: " + str(pakalpojums.pakalpojuma_kopsumma()) + " EUR")
-        print("Pakalpojuma ilgums: {:.0f} minūtes\n".format(pakalpojums.pakalpojuma_ilgums() / 60))
+        ilgums_minutes = pakalpojums.pakalpojuma_ilgums() / 60
+        if ilgums_minutes % 10 == 1:
+            print("Pakalpojuma ilgums: {:.0f} minūte\n".format(ilgums_minutes))
+        else:
+            print("Pakalpojuma ilgums: {:.0f} minūtes\n".format(ilgums_minutes))
         eksportet(pakalpojums)
