@@ -1,2 +1,5 @@
 venv/
+.idea/
 /*.json
+!klienti.json
+!pakalpojumi.json
