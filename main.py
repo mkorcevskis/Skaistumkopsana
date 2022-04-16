@@ -67,6 +67,108 @@ def importet(importa_datnes_nosaukums):
         msg.exec_()
     return list()
 
+class KlientsWidget(QWidget):
+    def __init__(self, izveletais_klients_index=-1, parent=None):
+        super(KlientsWidget, self).__init__(parent)
+        #
+        self.klients_index = izveletais_klients_index
+        #
+        self.setWindowIcon(QIcon("logo.png"))
+        self.setFixedSize(500, 200)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.klienta_vards_line_edit = QLineEdit()
+        self.klienta_uzvards_line_edit = QLineEdit()
+        self.klienta_pers_kods_line_edit = QLineEdit()
+        self.klienta_pers_kods_line_edit.setInputMask("999999-99999")
+        self.klienta_talr_num_line_edit = QLineEdit()
+        self.klienta_talr_num_line_edit.setInputMask("+99999999999")
+        if self.klients_index == -1:
+            self.setWindowTitle("Jaunais klients")
+            self.klients_label = QLabel("Jaunais klients")
+        else:
+            self.setWindowTitle("Klients \"" + klienti[self.klients_index].klienta_vards + " " +
+                                klienti[self.klients_index].klienta_uzvards + "\"")
+            self.klients_label = QLabel("Klients \"" + klienti[self.klients_index].klienta_vards + " " +
+                                        klienti[self.klients_index].klienta_uzvards + "\"")
+            self.klienta_vards_line_edit.setText(klienti[self.klients_index].klienta_vards)
+            self.klienta_uzvards_line_edit.setText(klienti[self.klients_index].klienta_uzvards)
+            self.klienta_pers_kods_line_edit.setText(klienti[self.klients_index].klienta_pers_kods)
+            self.klienta_talr_num_line_edit.setText(klienti[self.klients_index].klienta_talr_num)
+        self.klients_label.setAlignment(Qt.AlignCenter)
+        self.klients_label.setStyleSheet("font: 20px;")
+        self.saglabat_klientu_button = QPushButton("Saglabāt")
+        self.saglabat_klientu_button.setEnabled(False)
+        self.aizvert_klientu_button = QPushButton("Aizvērt")
+        self.klients_pogas_layout = QHBoxLayout()
+        self.klients_pogas_layout.addWidget(self.saglabat_klientu_button)
+        self.klients_pogas_layout.addWidget(self.aizvert_klientu_button)
+        self.klients_form_layout = QFormLayout()
+        self.klients_form_layout.addRow(self.klients_label)
+        self.klients_form_layout.addRow("Vārds:", self.klienta_vards_line_edit)
+        self.klients_form_layout.addRow("Uzvārds:", self.klienta_uzvards_line_edit)
+        self.klients_form_layout.addRow("Personas kods:", self.klienta_pers_kods_line_edit)
+        self.klients_form_layout.addRow("Tālruņa numurs:", self.klienta_talr_num_line_edit)
+        self.klients_form_layout.addRow(self.klients_pogas_layout)
+        self.setLayout(self.klients_form_layout)
+        #
+        self.klienta_vards_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
+        self.klienta_uzvards_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
+        self.klienta_pers_kods_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
+        self.klienta_talr_num_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
+        self.saglabat_klientu_button.clicked.connect(self.saglabat_klientu)
+        self.aizvert_klientu_button.clicked.connect(self.aizvert_klientu)
+
+    def saglabat_klientu(self):
+        if "" not in {self.klienta_vards_line_edit.text(), self.klienta_uzvards_line_edit.text()} and \
+                len(self.klienta_pers_kods_line_edit.text()) == 12 and \
+                len(self.klienta_talr_num_line_edit.text()) == 12:
+            klients_list_widget_item = QListWidgetItem()
+            if self.klients_index == -1:
+                jaunais_klients = Klients(self.klienta_vards_line_edit.text(), self.klienta_uzvards_line_edit.text(),
+                                          self.klienta_pers_kods_line_edit.text(),
+                                          self.klienta_talr_num_line_edit.text())
+                klienti.append(jaunais_klients)
+                klients_list_widget_item.setText(jaunais_klients.klienta_vards + " " + jaunais_klients.klienta_uzvards)
+                widget.klientu_saraksts_list_widget.addItem(klients_list_widget_item)
+            else:
+                klienti[self.klients_index].klienta_vards = self.klienta_vards_line_edit.text()
+                klienti[self.klients_index].klienta_uzvards = self.klienta_uzvards_line_edit.text()
+                klienti[self.klients_index].klienta_pers_kods = self.klienta_pers_kods_line_edit.text()
+                klienti[self.klients_index].klienta_talr_num = self.klienta_talr_num_line_edit.text()
+                klients_list_widget_item.setText(klienti[self.klients_index].klienta_vards + " " +
+                                                 klienti[self.klients_index].klienta_uzvards)
+                widget.klientu_saraksts_list_widget.takeItem(self.klients_index)
+                widget.klientu_saraksts_list_widget.insertItem(self.klients_index, klients_list_widget_item)
+            self.saglabat_klientu_button.setEnabled(False)
+            widget.eksportet_klientu_sarakstu_button.setEnabled(True)
+            return True
+        else:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Kļūda")
+            msg.setWindowIcon(QIcon("logo.png"))
+            msg.setText("Kāds no ievades laukiem ir tukšs!\nLūdzu, aizpildiet ar datiem visus laukus!")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+            return False
+
+    def aizvert_klientu(self):
+        if self.saglabat_klientu_button.isEnabled():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Izmaiņas nav saglabātas")
+            msg.setWindowIcon(QIcon("logo.png"))
+            msg.setText("Jums ir nesaglabātas izmaiņas!\nVai vēlaties vispirms saglabāt tās un tad aizvērt logu vai " +
+                        "aizvērt logu, nesaglabājot izmaiņas?")
+            vai_saglabat = msg.addButton("Saglabāt un aizvērt", QMessageBox.YesRole)
+            msg.addButton("Aizvērt, nesaglabājot", QMessageBox.NoRole)
+            msg.setDefaultButton(QMessageBox.Yes)
+            msg.exec_()
+            if msg.clickedButton() == vai_saglabat:
+                if not self.saglabat_klientu():
+                    return
+        self.close()
+
 
 class MyWidget(QWidget):
     def __init__(self, parent=None):
@@ -77,7 +179,6 @@ class MyWidget(QWidget):
         self.klienti_label.setStyleSheet("font: 20px;")
         self.izveidot_klientu_button = QPushButton("Izveidot jaunu")
         self.klientu_saraksts_list_widget = QListWidget()
-        # self.klientu_saraksts_list_widget.insertItem(0, "Testa klients")
         self.importet_klientu_sarakstu_button = QPushButton("Importēt")
         self.eksportet_klientu_sarakstu_button = QPushButton("Eksportēt")
         self.eksportet_klientu_sarakstu_button.setEnabled(False)
@@ -95,7 +196,6 @@ class MyWidget(QWidget):
         self.pakalpojumi_label.setStyleSheet("font: 20px;")
         self.izveidot_pakalpojumu_button = QPushButton("Izveidot jaunu")
         self.pakalpojumu_saraksts_list_widget = QListWidget()
-        # self.pakalpojumu_saraksts_list_widget.insertItem(0, "Testa pakalpojums")
         self.importet_pakalpojumu_sarakstu_button = QPushButton("Importēt")
         self.eksportet_pakalpojumu_sarakstu_button = QPushButton("Eksportēt")
         self.eksportet_pakalpojumu_sarakstu_button.setEnabled(False)
@@ -123,12 +223,12 @@ class MyWidget(QWidget):
         self.eksportet_pakalpojumu_sarakstu_button.clicked.connect(self.eksportet_pakalpojumu_sarakstu)
 
     def izveidot_klientu(self):
-        pass
+        klients_widget = KlientsWidget()
+        klients_widget.show()
 
     def apskatit_klientu(self):
-        selected_index = self.klientu_saraksts_list_widget.selectedIndexes()[0].row()
-        print(self.klientu_saraksts_list_widget.currentItem().text())
-        print(klienti[selected_index])
+        klients_widget = KlientsWidget(self.klientu_saraksts_list_widget.selectedIndexes()[0].row())
+        klients_widget.show()
 
     def importet_klientu_sarakstu(self):
         global klienti
@@ -190,12 +290,14 @@ class MyWidget(QWidget):
         msg.addButton("Par visiem klientiem", QMessageBox.NoRole)
         msg.setDefaultButton(QMessageBox.Yes)
         msg.exec_()
+        eksportejamie_klienti = list()
         if msg.clickedButton() == vai_eksportet_izveleto_klientu:
             if len(self.klientu_saraksts_list_widget.selectedIndexes()) > 0:
-                eksportejamie_klienti = klienti[self.klientu_saraksts_list_widget.selectedIndexes()[0].row()]
-                eksporta_datnes_nosaukuma_sakums = "klienta_" + str(eksportejamie_klienti.klienta_id)
+                eksportejamie_klienti.append(klienti[self.klientu_saraksts_list_widget.selectedIndexes()[0].row()])
+                eksporta_datnes_nosaukuma_sakums = "klienta_" + str(eksportejamie_klienti[0].klienta_id)
                 msgText = "Tika veiksmīgi eksportēti dati par klientu \"" + \
-                          eksportejamie_klienti.klienta_vards + " " + eksportejamie_klienti.klienta_uzvards + "\"!"
+                          eksportejamie_klienti[0].klienta_vards + " " + \
+                          eksportejamie_klienti[0].klienta_uzvards + "\"!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -206,9 +308,19 @@ class MyWidget(QWidget):
                 msg.exec_()
                 return
         else:
-            eksportejamie_klienti = klienti
-            eksporta_datnes_nosaukuma_sakums = "klientu"
-            msgText = "Tika veiksmīgi eksportēti dati par visiem klientiem!"
+            if len(klienti) > 0:
+                eksportejamie_klienti = klienti
+                eksporta_datnes_nosaukuma_sakums = "klientu"
+                msgText = "Tika veiksmīgi eksportēti dati par visiem klientiem!"
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Neviens klients nav izveidots!\nLūdzu, vispirms izveidojiet vismaz vienu klientu!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+                return
         eksporta_datnes_nosaukums, ok = QInputDialog().getText(self, "Klientu datu eksports",
                                                                "Lūdzu, ievadiet datnes nosaukumu datu eksportam!",
                                                                QLineEdit.Normal, eksporta_datnes_nosaukuma_sakums +
@@ -312,13 +424,14 @@ class MyWidget(QWidget):
         msg.addButton("Par visiem pakalpojumiem", QMessageBox.NoRole)
         msg.setDefaultButton(QMessageBox.Yes)
         msg.exec_()
+        eksportejamie_pakalpojumi = list()
         if msg.clickedButton() == vai_eksportet_izveleto_pakalpojumu:
             if len(self.pakalpojumu_saraksts_list_widget.selectedIndexes()) > 0:
-                eksportejamie_pakalpojumi = \
-                    pakalpojumi[self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()]
-                eksporta_datnes_nosaukuma_sakums = "pakalpojuma_" + str(eksportejamie_pakalpojumi.pakalpojuma_id)
+                eksportejamie_pakalpojumi.append(
+                    pakalpojumi[self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()])
+                eksporta_datnes_nosaukuma_sakums = "pakalpojuma_" + str(eksportejamie_pakalpojumi[0].pakalpojuma_id)
                 msgText = "Tika veiksmīgi eksportēti dati par pakalpojumu \"" + \
-                          eksportejamie_pakalpojumi.pakalpojuma_nosaukums + "\"!"
+                          eksportejamie_pakalpojumi[0].pakalpojuma_nosaukums + "\"!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -329,9 +442,19 @@ class MyWidget(QWidget):
                 msg.exec_()
                 return
         else:
-            eksportejamie_pakalpojumi = pakalpojumi
-            eksporta_datnes_nosaukuma_sakums = "pakalpojumu"
-            msgText = "Tika veiksmīgi eksportēti dati par visiem pakalpojumiem!"
+            if len(pakalpojumi) > 0:
+                eksportejamie_pakalpojumi = pakalpojumi
+                eksporta_datnes_nosaukuma_sakums = "pakalpojumu"
+                msgText = "Tika veiksmīgi eksportēti dati par visiem pakalpojumiem!"
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Neviens pakalpojums nav izveidots!\nLūdzu, vispirms izveidojiet vismaz vienu pakalpojumu!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+                return
         eksporta_datnes_nosaukums, ok = QInputDialog().getText(self, "Pakalpojumu datu eksports",
                                                                "Lūdzu, ievadiet datnes nosaukumu datu eksportam!",
                                                                QLineEdit.Normal, eksporta_datnes_nosaukuma_sakums +
