@@ -1,4 +1,8 @@
+import sys
 import json
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import *
 from datetime import datetime, time, date
 from klients import Klients
 from pakalpojums import Pakalpojums
@@ -10,38 +14,357 @@ class SpecialaisJSONKodetajs(json.JSONEncoder):
             isinstance(obj, time) else obj.__dict__
 
 
-def eksportet(obj):
-    objekta_klases_nosaukums = "klienta_{}".format(obj.klienta_id) if isinstance(obj, Klients) else \
-        "pakalpojuma_{}".format(obj.pakalpojuma_id) if isinstance(obj, Pakalpojums) else "objekta"
-    eksporta_datnes_nosaukums = objekta_klases_nosaukums + "_eksports_" \
-                                + datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".json"
+def eksportet(obj, eksporta_datnes_nosaukums):
     try:
         with open(eksporta_datnes_nosaukums, "w", encoding="utf-8") as eksporta_datne:
             json.dump(obj, eksporta_datne, ensure_ascii=False, cls=SpecialaisJSONKodetajs)
+        return True
     except OSError:
-        print("Neizdevās izveidot datni datu eksportam!")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Kļūda")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Neizdevās izveidot datni datu eksportam!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
     except Exception:
-        print("Izvades kļūda!")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Kļūda")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Izvades kļūda!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
 
-def importet():
+def importet(importa_datnes_nosaukums):
     try:
         with open(importa_datnes_nosaukums, encoding="utf-8") as importa_datne:
             return json.load(importa_datne)
     except OSError:
-        print("Neizdevās atvērt datni datu importam!")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Kļūda")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Neizdevās atvērt datni datu importam!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
     except json.decoder.JSONDecodeError:
-        print("Datnes satura formāts neatbilst JSON formātam!")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Kļūda")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Datnes satura formāts neatbilst JSON formātam!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
     except Exception:
-        print("Ievades kļūda!")
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Kļūda")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Ievades kļūda!")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
     return list()
+
+
+class MyWidget(QWidget):
+    def __init__(self, parent=None):
+        super(MyWidget, self).__init__(parent)
+        #
+        self.klienti_label = QLabel("Klienti")
+        self.klienti_label.setAlignment(Qt.AlignCenter)
+        self.klienti_label.setStyleSheet("font: 20px;")
+        self.izveidot_klientu_button = QPushButton("Izveidot jaunu")
+        self.klientu_saraksts_list_widget = QListWidget()
+        # self.klientu_saraksts_list_widget.insertItem(0, "Testa klients")
+        self.importet_klientu_sarakstu_button = QPushButton("Importēt")
+        self.eksportet_klientu_sarakstu_button = QPushButton("Eksportēt")
+        self.eksportet_klientu_sarakstu_button.setEnabled(False)
+        self.klientu_pogas_layout = QHBoxLayout()
+        self.klientu_pogas_layout.addWidget(self.importet_klientu_sarakstu_button)
+        self.klientu_pogas_layout.addWidget(self.eksportet_klientu_sarakstu_button)
+        self.klienti_layout = QVBoxLayout()
+        self.klienti_layout.addWidget(self.klienti_label)
+        self.klienti_layout.addWidget(self.izveidot_klientu_button)
+        self.klienti_layout.addWidget(self.klientu_saraksts_list_widget)
+        self.klienti_layout.addLayout(self.klientu_pogas_layout)
+        #
+        self.pakalpojumi_label = QLabel("Pakalpojumi")
+        self.pakalpojumi_label.setAlignment(Qt.AlignCenter)
+        self.pakalpojumi_label.setStyleSheet("font: 20px;")
+        self.izveidot_pakalpojumu_button = QPushButton("Izveidot jaunu")
+        self.pakalpojumu_saraksts_list_widget = QListWidget()
+        # self.pakalpojumu_saraksts_list_widget.insertItem(0, "Testa pakalpojums")
+        self.importet_pakalpojumu_sarakstu_button = QPushButton("Importēt")
+        self.eksportet_pakalpojumu_sarakstu_button = QPushButton("Eksportēt")
+        self.eksportet_pakalpojumu_sarakstu_button.setEnabled(False)
+        self.pakalpojumu_pogas_layout = QHBoxLayout()
+        self.pakalpojumu_pogas_layout.addWidget(self.importet_pakalpojumu_sarakstu_button)
+        self.pakalpojumu_pogas_layout.addWidget(self.eksportet_pakalpojumu_sarakstu_button)
+        self.pakalpojumi_layout = QVBoxLayout()
+        self.pakalpojumi_layout.addWidget(self.pakalpojumi_label)
+        self.pakalpojumi_layout.addWidget(self.izveidot_pakalpojumu_button)
+        self.pakalpojumi_layout.addWidget(self.pakalpojumu_saraksts_list_widget)
+        self.pakalpojumi_layout.addLayout(self.pakalpojumu_pogas_layout)
+        #
+        self.galvenais_logs_layout = QHBoxLayout()
+        self.galvenais_logs_layout.addLayout(self.klienti_layout)
+        self.galvenais_logs_layout.addLayout(self.pakalpojumi_layout)
+        self.setLayout(self.galvenais_logs_layout)
+        #
+        self.izveidot_klientu_button.clicked.connect(self.izveidot_klientu)
+        self.klientu_saraksts_list_widget.clicked.connect(self.apskatit_klientu)
+        self.importet_klientu_sarakstu_button.clicked.connect(self.importet_klientu_sarakstu)
+        self.eksportet_klientu_sarakstu_button.clicked.connect(self.eksportet_klientu_sarakstu)
+        self.izveidot_pakalpojumu_button.clicked.connect(self.izveidot_pakalpojumu)
+        self.pakalpojumu_saraksts_list_widget.clicked.connect(self.apskatit_pakalpojumu)
+        self.importet_pakalpojumu_sarakstu_button.clicked.connect(self.importet_pakalpojumu_sarakstu)
+        self.eksportet_pakalpojumu_sarakstu_button.clicked.connect(self.eksportet_pakalpojumu_sarakstu)
+
+    def izveidot_klientu(self):
+        pass
+
+    def apskatit_klientu(self):
+        selected_index = self.klientu_saraksts_list_widget.selectedIndexes()[0].row()
+        print(self.klientu_saraksts_list_widget.currentItem().text())
+        print(klienti[selected_index])
+
+    def importet_klientu_sarakstu(self):
+        global klienti
+        importa_datnes_nosaukums, ok = QInputDialog().getText(self, "Klientu datu imports",
+                                                              "Lūdzu, ievadiet datnes nosaukumu datu importam!",
+                                                              QLineEdit.Normal, "klienti.json")
+        if importa_datnes_nosaukums and ok:
+            datnes_saturs = importet(importa_datnes_nosaukums)
+            if isinstance(datnes_saturs, list) and len(datnes_saturs) > 0:
+                if all(i in datnes_saturs[0] for i in ("klienta_id", "klienta_vards", "klienta_uzvards",
+                                                       "klienta_pers_kods", "klienta_talr_num")):
+                    jaunie_klienti = list()
+                    for item in datnes_saturs:
+                        jaunie_klienti.append(Klients(item["klienta_vards"], item["klienta_uzvards"],
+                                                      item["klienta_pers_kods"], item["klienta_talr_num"]))
+                    if len(jaunie_klienti) != 0:
+                        msgText = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_klienti)) + " klient"
+                        if len(jaunie_klienti) % 10 == 1:
+                            msgText += "u!"
+                        else:
+                            msgText += "iem!"
+                        msg = QMessageBox()
+                        msg.setIcon(QMessageBox.Information)
+                        msg.setWindowTitle("Imports ir veiksmīgs")
+                        msg.setWindowIcon(QIcon("logo.png"))
+                        msg.setText(msgText)
+                        msg.setStandardButtons(QMessageBox.Ok)
+                        msg.exec_()
+                        for klients in jaunie_klienti:
+                            klients_list_widget_item = QListWidgetItem()
+                            klients_list_widget_item.setText(klients.klienta_vards + " " + klients.klienta_uzvards)
+                            self.klientu_saraksts_list_widget.addItem(klients_list_widget_item)
+                        klienti += jaunie_klienti
+                        self.eksportet_klientu_sarakstu_button.setEnabled(True)
+                else:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setWindowTitle("Kļūda")
+                    msg.setWindowIcon(QIcon("logo.png"))
+                    msg.setText("Nezināma objekta struktūra!")
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Nezināma datnes satura struktūra!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+
+    def eksportet_klientu_sarakstu(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setWindowTitle("Eksporta veida izvēle")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Vai vēlaties esportēt datus tikai par izvēlēto klientu vai par visiem klientiem?")
+        vai_eksportet_izveleto_klientu = msg.addButton("Par izvēlēto klientu", QMessageBox.YesRole)
+        msg.addButton("Par visiem klientiem", QMessageBox.NoRole)
+        msg.setDefaultButton(QMessageBox.Yes)
+        msg.exec_()
+        if msg.clickedButton() == vai_eksportet_izveleto_klientu:
+            if len(self.klientu_saraksts_list_widget.selectedIndexes()) > 0:
+                eksportejamie_klienti = klienti[self.klientu_saraksts_list_widget.selectedIndexes()[0].row()]
+                eksporta_datnes_nosaukuma_sakums = "klienta_" + str(eksportejamie_klienti.klienta_id)
+                msgText = "Tika veiksmīgi eksportēti dati par klientu \"" + \
+                          eksportejamie_klienti.klienta_vards + " " + eksportejamie_klienti.klienta_uzvards + "\"!"
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Neviens klients nav izvēlēts!\nLūdzu, izvēlieties klientu!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+                return
+        else:
+            eksportejamie_klienti = klienti
+            eksporta_datnes_nosaukuma_sakums = "klientu"
+            msgText = "Tika veiksmīgi eksportēti dati par visiem klientiem!"
+        eksporta_datnes_nosaukums, ok = QInputDialog().getText(self, "Klientu datu eksports",
+                                                               "Lūdzu, ievadiet datnes nosaukumu datu eksportam!",
+                                                               QLineEdit.Normal, eksporta_datnes_nosaukuma_sakums +
+                                                               "_eksports_" +
+                                                               datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".json")
+        if eksporta_datnes_nosaukums and ok:
+            vai_eksports_ir_veiksmigs = eksportet(eksportejamie_klienti, eksporta_datnes_nosaukums)
+            if vai_eksports_ir_veiksmigs:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("Eksports ir veiksmīgs")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText(msgText)
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+
+    def izveidot_pakalpojumu(self):
+        pass
+
+    def apskatit_pakalpojumu(self):
+        selected_index = self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()
+        print(self.pakalpojumu_saraksts_list_widget.currentItem().text())
+        print(pakalpojumi[selected_index])
+
+    def importet_pakalpojumu_sarakstu(self):
+        global pakalpojumi
+        importa_datnes_nosaukums, ok = QInputDialog().getText(self, "Pakalpojumu datu imports",
+                                                              "Lūdzu, ievadiet datnes nosaukumu datu importam!",
+                                                              QLineEdit.Normal, "pakalpojumi.json")
+        if importa_datnes_nosaukums and ok:
+            datnes_saturs = importet(importa_datnes_nosaukums)
+            if isinstance(datnes_saturs, list) and len(datnes_saturs) > 0:
+                if all(i in datnes_saturs[0] for i in ("pakalpojuma_id", "pakalpojuma_kategorija",
+                                                       "pakalpojuma_nosaukums", "pakalpojuma_atlaide",
+                                                       "pakalpojuma_cena", "pakalpojuma_datums",
+                                                       "pakalpojuma_sakuma_laiks", "pakalpojuma_beigu_laiks")):
+                    jaunie_pakalpojumi = list()
+                    for item in datnes_saturs:
+                        try:
+                            jaunie_pakalpojumi.append(
+                                Pakalpojums(item["pakalpojuma_kategorija"], item["pakalpojuma_nosaukums"],
+                                            item["pakalpojuma_atlaide"], item["pakalpojuma_cena"],
+                                            datetime.strptime(item["pakalpojuma_datums"],
+                                                              "%d.%m.%Y.").date(),
+                                            datetime.strptime(item["pakalpojuma_sakuma_laiks"],
+                                                              "%H:%M").time(),
+                                            datetime.strptime(item["pakalpojuma_beigu_laiks"],
+                                                              "%H:%M").time()))
+                        except ValueError:
+                            msg = QMessageBox()
+                            msg.setIcon(QMessageBox.Critical)
+                            msg.setWindowTitle("Kļūda")
+                            msg.setWindowIcon(QIcon("logo.png"))
+                            msg.setText("Pakalpojumam \"" + item["pakalpojuma_nosaukums"] +
+                                        "\" ir nepareizs skaitļu formāts!")
+                            msg.setStandardButtons(QMessageBox.Ok)
+                            msg.exec_()
+                    if len(jaunie_pakalpojumi) != 0:
+                        msgText = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_pakalpojumi)) + " pakalpojum"
+                        if len(jaunie_pakalpojumi) % 10 == 1:
+                            msgText += "u!"
+                        else:
+                            msgText += "iem!"
+                        msg = QMessageBox()
+                        msg.setIcon(QMessageBox.Information)
+                        msg.setWindowTitle("Imports ir veiksmīgs")
+                        msg.setWindowIcon(QIcon("logo.png"))
+                        msg.setText(msgText)
+                        msg.setStandardButtons(QMessageBox.Ok)
+                        msg.exec_()
+                        for pakalpojums in jaunie_pakalpojumi:
+                            pakalpojums_list_widget_item = QListWidgetItem()
+                            pakalpojums_list_widget_item.setText(pakalpojums.pakalpojuma_nosaukums)
+                            self.pakalpojumu_saraksts_list_widget.addItem(pakalpojums_list_widget_item)
+                        pakalpojumi += jaunie_pakalpojumi
+                        self.eksportet_pakalpojumu_sarakstu_button.setEnabled(True)
+                else:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Critical)
+                    msg.setWindowTitle("Kļūda")
+                    msg.setWindowIcon(QIcon("logo.png"))
+                    msg.setText("Nezināma objekta struktūra!")
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Nezināma datnes satura struktūra!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+
+    def eksportet_pakalpojumu_sarakstu(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Question)
+        msg.setWindowTitle("Eksporta veida izvēle")
+        msg.setWindowIcon(QIcon("logo.png"))
+        msg.setText("Vai vēlaties esportēt datus tikai par izvēlēto pakalpojumu vai par visiem pakalpojumiem?")
+        vai_eksportet_izveleto_pakalpojumu = msg.addButton("Par izvēlēto pakalpojumu", QMessageBox.YesRole)
+        msg.addButton("Par visiem pakalpojumiem", QMessageBox.NoRole)
+        msg.setDefaultButton(QMessageBox.Yes)
+        msg.exec_()
+        if msg.clickedButton() == vai_eksportet_izveleto_pakalpojumu:
+            if len(self.pakalpojumu_saraksts_list_widget.selectedIndexes()) > 0:
+                eksportejamie_pakalpojumi = \
+                    pakalpojumi[self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()]
+                eksporta_datnes_nosaukuma_sakums = "pakalpojuma_" + str(eksportejamie_pakalpojumi.pakalpojuma_id)
+                msgText = "Tika veiksmīgi eksportēti dati par pakalpojumu \"" + \
+                          eksportejamie_pakalpojumi.pakalpojuma_nosaukums + "\"!"
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Neviens pakalpojums nav izvēlēts!\nLūdzu, izvēlieties pakalpojumu!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+                return
+        else:
+            eksportejamie_pakalpojumi = pakalpojumi
+            eksporta_datnes_nosaukuma_sakums = "pakalpojumu"
+            msgText = "Tika veiksmīgi eksportēti dati par visiem pakalpojumiem!"
+        eksporta_datnes_nosaukums, ok = QInputDialog().getText(self, "Pakalpojumu datu eksports",
+                                                               "Lūdzu, ievadiet datnes nosaukumu datu eksportam!",
+                                                               QLineEdit.Normal, eksporta_datnes_nosaukuma_sakums +
+                                                               "_eksports_" +
+                                                               datetime.now().strftime("%d_%m_%Y_%H_%M_%S") + ".json")
+        if eksporta_datnes_nosaukums and ok:
+            vai_eksports_ir_veiksmigs = eksportet(eksportejamie_pakalpojumi, eksporta_datnes_nosaukums)
+            if vai_eksports_ir_veiksmigs:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Information)
+                msg.setWindowTitle("Eksports ir veiksmīgs")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText(msgText)
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
 
 
 if __name__ == "__main__":
     klienti = list()
     pakalpojumi = list()
 
-    while True:
+    app = QApplication(sys.argv)
+    widget = MyWidget()
+    win = QMainWindow()
+    win.setWindowTitle("Skaistumkopšanas salona vadības sistēma")
+    win.setWindowIcon(QIcon("logo.png"))
+    win.setCentralWidget(widget)
+    win.setFixedSize(600, 550)
+    win.show()
+    sys.exit(app.exec_())
+
+'''
+while True:
         print()
         importa_datnes_nosaukums = input("Lūdzu, ievadiet datnes nosaukumu datu ievadei: ")
         datnes_saturs = importet()
@@ -98,13 +421,4 @@ if __name__ == "__main__":
                 break
         if ievade[0].lower() == "n":
             break
-
-    # klients_1 = Klients("Mihails", "Korčevskis", "171299-00000", "20000000")
-    # klients_2 = Klients("Andrejs", "Vasiļkovs", "101000-00000", "20000000")
-    # klients_3 = Klients()
-    # klienti = [klients_1, klients_2, klients_3]
-
-    # pakalpojums_1 = Pakalpojums("Solārijs", "Solārijs", 0.2, 50, datetime.strptime("08.04.2022.", "%d.%m.%Y.").date(),
-    #                             datetime.strptime("12:30", "%H:%M").time(), datetime.strptime("12:45", "%H:%M").time())
-    # pakalpojums_2 = Pakalpojums()
-    # pakalpojumi = [pakalpojums_1, pakalpojums_2]
+'''
