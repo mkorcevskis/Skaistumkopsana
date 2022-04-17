@@ -1,5 +1,6 @@
 import itertools
 
+
 class Klients:
     klienta_vards = "Jānis"
     klienta_uzvards = "Bērziņš"

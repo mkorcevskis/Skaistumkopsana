@@ -5,8 +5,8 @@ import itertools
 class Pakalpojums:
     pakalpojuma_kategorija = "Frizētava"
     pakalpojuma_nosaukums = "Matu griešana"
-    pakalpojuma_atlaide = 0.0
-    pakalpojuma_cena = 20.0
+    pakalpojuma_atlaide = 0.00
+    pakalpojuma_cena = 20.00
     pakalpojuma_datums = datetime.now().date()
     pakalpojuma_sakuma_laiks = datetime.now().time()
     pakalpojuma_beigu_laiks = datetime.time(datetime.now() + timedelta(minutes=40))
@@ -36,7 +36,7 @@ class Pakalpojums:
                 datetime.combine(date.min, self.pakalpojuma_sakuma_laiks)).total_seconds()
 
     def pakalpojuma_kopsumma(self):
-        return self.pakalpojuma_cena * (1.0 - self.pakalpojuma_atlaide)
+        return self.pakalpojuma_cena * (1.00 - self.pakalpojuma_atlaide)
 
     def pakalpojuma_info(self):
         return [self.pakalpojuma_kategorija, self.pakalpojuma_nosaukums, self.pakalpojuma_atlaide,

@@ -1,7 +1,7 @@
 import sys
 import json
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QIcon
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from datetime import datetime, time, date
 from klients import Klients
@@ -70,9 +70,7 @@ def importet(importa_datnes_nosaukums):
 class KlientsWidget(QWidget):
     def __init__(self, izveletais_klients_index=-1, parent=None):
         super(KlientsWidget, self).__init__(parent)
-        #
         self.klients_index = izveletais_klients_index
-        #
         self.setWindowIcon(QIcon("logo.png"))
         self.setFixedSize(500, 200)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
@@ -110,7 +108,6 @@ class KlientsWidget(QWidget):
         self.klients_form_layout.addRow("Tālruņa numurs:", self.klienta_talr_num_line_edit)
         self.klients_form_layout.addRow(self.klients_pogas_layout)
         self.setLayout(self.klients_form_layout)
-        #
         self.klienta_vards_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
         self.klienta_uzvards_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
         self.klienta_pers_kods_line_edit.textChanged.connect(lambda: self.saglabat_klientu_button.setEnabled(True))
@@ -139,6 +136,7 @@ class KlientsWidget(QWidget):
                                                  klienti[self.klients_index].klienta_uzvards)
                 widget.klientu_saraksts_list_widget.takeItem(self.klients_index)
                 widget.klientu_saraksts_list_widget.insertItem(self.klients_index, klients_list_widget_item)
+                widget.klientu_saraksts_list_widget.setCurrentRow(self.klients_index)
             self.saglabat_klientu_button.setEnabled(False)
             widget.eksportet_klientu_sarakstu_button.setEnabled(True)
             return True
@@ -147,7 +145,8 @@ class KlientsWidget(QWidget):
             msg.setIcon(QMessageBox.Critical)
             msg.setWindowTitle("Kļūda")
             msg.setWindowIcon(QIcon("logo.png"))
-            msg.setText("Kāds no ievades laukiem ir tukšs!\nLūdzu, aizpildiet ar datiem visus laukus!")
+            msg.setText("Kāds no ievades laukiem ir tukšs vai tā vērtībai ir nepareizs formāts!\n" +
+                        "Lūdzu, aizpildiet ar datiem visus laukus un pārbaudiet vērtības!")
             msg.setStandardButtons(QMessageBox.Ok)
             msg.exec_()
             return False
@@ -170,10 +169,186 @@ class KlientsWidget(QWidget):
         self.close()
 
 
-class MyWidget(QWidget):
+class PakalpojumsWidget(QWidget):
+    def __init__(self, izveletais_pakalpojums_index=-1, parent=None):
+        super(PakalpojumsWidget, self).__init__(parent)
+        self.pakalpojums_index = izveletais_pakalpojums_index
+        self.setWindowIcon(QIcon("logo.png"))
+        self.setFixedSize(500, 350)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.pakalpojuma_kategorija_line_edit = QLineEdit()
+        self.pakalpojuma_nosaukums_line_edit = QLineEdit()
+        self.pakalpojuma_atlaide_line_edit = QLineEdit()
+        self.pakalpojuma_atlaide_line_edit.setInputMask("99.99")
+        self.pakalpojuma_atlaide_line_edit.setText("00.00")
+        self.pakalpojuma_cena_line_edit = QLineEdit()
+        self.pakalpojuma_cena_double_validator = QDoubleValidator(bottom=0.00, decimals=2)
+        self.pakalpojuma_cena_double_validator.setNotation(QDoubleValidator.StandardNotation)
+        self.pakalpojuma_cena_line_edit.setValidator(self.pakalpojuma_cena_double_validator)
+        self.pakalpojuma_datums_line_edit = QLineEdit()
+        self.pakalpojuma_datums_line_edit.setInputMask("99.99.9999.")
+        self.pakalpojuma_sakuma_laiks_line_edit = QLineEdit()
+        self.pakalpojuma_sakuma_laiks_line_edit.setInputMask("99:99")
+        self.pakalpojuma_beigu_laiks_line_edit = QLineEdit()
+        self.pakalpojuma_beigu_laiks_line_edit.setInputMask("99:99")
+        self.pakalpojuma_ilgums_line_edit = QLineEdit()
+        self.pakalpojuma_ilgums_line_edit.setText("0")
+        self.pakalpojuma_ilgums_line_edit.setReadOnly(True)
+        self.pakalpojuma_kopsumma_line_edit = QLineEdit()
+        self.pakalpojuma_kopsumma_line_edit.setText("00.00")
+        self.pakalpojuma_kopsumma_line_edit.setReadOnly(True)
+        if self.pakalpojums_index == -1:
+            self.setWindowTitle("Jaunais pakalpojums")
+            self.pakalpojums_label = QLabel("Jaunais pakalpojums")
+        else:
+            self.setWindowTitle("Pakalpojums \"" + pakalpojumi[self.pakalpojums_index].pakalpojuma_nosaukums + "\"")
+            self.pakalpojums_label = QLabel("Pakalpojums \"" +
+                                            pakalpojumi[self.pakalpojums_index].pakalpojuma_nosaukums + "\"")
+            self.pakalpojuma_kategorija_line_edit.setText(pakalpojumi[self.pakalpojums_index].pakalpojuma_kategorija)
+            self.pakalpojuma_nosaukums_line_edit.setText(pakalpojumi[self.pakalpojums_index].pakalpojuma_nosaukums)
+            self.pakalpojuma_atlaide_line_edit.setText("{:.2f}".format(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_atlaide * 100).zfill(5))
+            self.pakalpojuma_cena_line_edit.setText("{:.2f}".format(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_cena))
+            self.pakalpojuma_datums_line_edit.setText(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_datums.strftime("%d.%m.%Y."))
+            self.pakalpojuma_sakuma_laiks_line_edit.setText(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_sakuma_laiks.strftime("%H:%M"))
+            self.pakalpojuma_beigu_laiks_line_edit.setText(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_beigu_laiks.strftime("%H:%M"))
+            self.pakalpojuma_ilgums_line_edit.setText("{:.0f}".format(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_ilgums() / 60))
+            self.pakalpojuma_kopsumma_line_edit.setText("{:.2f}".format(
+                pakalpojumi[self.pakalpojums_index].pakalpojuma_kopsumma()))
+        self.pakalpojums_label.setAlignment(Qt.AlignCenter)
+        self.pakalpojums_label.setStyleSheet("font: 20px;")
+        self.saglabat_pakalpojumu_button = QPushButton("Saglabāt")
+        self.saglabat_pakalpojumu_button.setEnabled(False)
+        self.aizvert_pakalpojumu_button = QPushButton("Aizvērt")
+        self.pakalpojums_pogas_layout = QHBoxLayout()
+        self.pakalpojums_pogas_layout.addWidget(self.saglabat_pakalpojumu_button)
+        self.pakalpojums_pogas_layout.addWidget(self.aizvert_pakalpojumu_button)
+        self.pakalpojums_form_layout = QFormLayout()
+        self.pakalpojums_form_layout.addRow(self.pakalpojums_label)
+        self.pakalpojums_form_layout.addRow("Kategorija:", self.pakalpojuma_kategorija_line_edit)
+        self.pakalpojums_form_layout.addRow("Nosaukums:", self.pakalpojuma_nosaukums_line_edit)
+        self.pakalpojums_form_layout.addRow("Atlaide, %:", self.pakalpojuma_atlaide_line_edit)
+        self.pakalpojums_form_layout.addRow("Cena, EUR:", self.pakalpojuma_cena_line_edit)
+        self.pakalpojums_form_layout.addRow("Datums:", self.pakalpojuma_datums_line_edit)
+        self.pakalpojums_form_layout.addRow("Sākuma laiks:", self.pakalpojuma_sakuma_laiks_line_edit)
+        self.pakalpojums_form_layout.addRow("Beigu laiks:", self.pakalpojuma_beigu_laiks_line_edit)
+        self.pakalpojums_form_layout.addRow("Ilgums, min:", self.pakalpojuma_ilgums_line_edit)
+        self.pakalpojums_form_layout.addRow("Kopsumma, EUR:", self.pakalpojuma_kopsumma_line_edit)
+        self.pakalpojums_form_layout.addRow(self.pakalpojums_pogas_layout)
+        self.setLayout(self.pakalpojums_form_layout)
+        self.pakalpojuma_kategorija_line_edit.textChanged.connect(lambda:
+                                                                  self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_nosaukums_line_edit.textChanged.connect(lambda:
+                                                                 self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_atlaide_line_edit.textChanged.connect(lambda:
+                                                               self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_cena_line_edit.textChanged.connect(lambda: self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_datums_line_edit.textChanged.connect(lambda: self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_sakuma_laiks_line_edit.textChanged.connect(lambda:
+                                                                    self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.pakalpojuma_beigu_laiks_line_edit.textChanged.connect(lambda:
+                                                                   self.saglabat_pakalpojumu_button.setEnabled(True))
+        self.saglabat_pakalpojumu_button.clicked.connect(self.saglabat_pakalpojumu)
+        self.aizvert_pakalpojumu_button.clicked.connect(self.aizvert_pakalpojumu)
+
+    def saglabat_pakalpojumu(self):
+        try:
+            if "" not in {self.pakalpojuma_kategorija_line_edit.text(),
+                          self.pakalpojuma_nosaukums_line_edit.text()} and \
+                    datetime.strptime(self.pakalpojuma_sakuma_laiks_line_edit.text(), "%H:%M").time() < \
+                    datetime.strptime(self.pakalpojuma_beigu_laiks_line_edit.text(), "%H:%M").time():
+                pakalpojums_list_widget_item = QListWidgetItem()
+                if self.pakalpojums_index == -1:
+                    jaunais_pakalpojums = Pakalpojums(self.pakalpojuma_kategorija_line_edit.text(),
+                                                      self.pakalpojuma_nosaukums_line_edit.text(),
+                                                      float(self.pakalpojuma_atlaide_line_edit.text()) / 100,
+                                                      float(self.pakalpojuma_cena_line_edit.text()),
+                                                      datetime.strptime(self.pakalpojuma_datums_line_edit.text(),
+                                                                        "%d.%m.%Y.").date(),
+                                                      datetime.strptime(self.pakalpojuma_sakuma_laiks_line_edit.text(),
+                                                                        "%H:%M").time(),
+                                                      datetime.strptime(self.pakalpojuma_beigu_laiks_line_edit.text(),
+                                                                        "%H:%M").time())
+                    pakalpojumi.append(jaunais_pakalpojums)
+                    pakalpojums_list_widget_item.setText(jaunais_pakalpojums.pakalpojuma_nosaukums)
+                    widget.pakalpojumu_saraksts_list_widget.addItem(pakalpojums_list_widget_item)
+                    self.pakalpojuma_ilgums_line_edit.setText("{:.0f}".format(
+                        jaunais_pakalpojums.pakalpojuma_ilgums() / 60))
+                    self.pakalpojuma_kopsumma_line_edit.setText("{:.2f}".format(
+                        jaunais_pakalpojums.pakalpojuma_kopsumma()))
+                else:
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_kategorija = \
+                        self.pakalpojuma_kategorija_line_edit.text()
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_nosaukums = \
+                        self.pakalpojuma_nosaukums_line_edit.text()
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_atlaide = \
+                        float(self.pakalpojuma_atlaide_line_edit.text()) / 100
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_cena = float(self.pakalpojuma_cena_line_edit.text())
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_datums = \
+                        datetime.strptime(self.pakalpojuma_datums_line_edit.text(), "%d.%m.%Y.").date()
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_sakuma_laiks = \
+                        datetime.strptime(self.pakalpojuma_sakuma_laiks_line_edit.text(), "%H:%M").time()
+                    pakalpojumi[self.pakalpojums_index].pakalpojuma_beigu_laiks = \
+                        datetime.strptime(self.pakalpojuma_beigu_laiks_line_edit.text(), "%H:%M").time()
+                    pakalpojums_list_widget_item.setText(pakalpojumi[self.pakalpojums_index].pakalpojuma_nosaukums)
+                    widget.pakalpojumu_saraksts_list_widget.takeItem(self.pakalpojums_index)
+                    widget.pakalpojumu_saraksts_list_widget.insertItem(self.pakalpojums_index,
+                                                                       pakalpojums_list_widget_item)
+                    widget.pakalpojumu_saraksts_list_widget.setCurrentRow(self.pakalpojums_index)
+                    self.pakalpojuma_ilgums_line_edit.setText("{:.0f}".format(
+                        pakalpojumi[self.pakalpojums_index].pakalpojuma_ilgums() / 60))
+                    self.pakalpojuma_kopsumma_line_edit.setText("{:.2f}".format(
+                        pakalpojumi[self.pakalpojums_index].pakalpojuma_kopsumma()))
+                self.saglabat_pakalpojumu_button.setEnabled(False)
+                widget.eksportet_pakalpojumu_sarakstu_button.setEnabled(True)
+                return True
+            else:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Critical)
+                msg.setWindowTitle("Kļūda")
+                msg.setWindowIcon(QIcon("logo.png"))
+                msg.setText("Kāds no ievades laukiem ir tukšs vai tā vērtībai ir nepareizs formāts!\n" +
+                            "Lūdzu, aizpildiet ar datiem visus laukus un pārbaudiet vērtības!")
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.exec_()
+                return False
+        except ValueError:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Critical)
+            msg.setWindowTitle("Kļūda")
+            msg.setWindowIcon(QIcon("logo.png"))
+            msg.setText("Kādai no ievades lauku vērtībām ir nepareizs formāts!\n" +
+                        "Lūdzu, pārbaudiet visu ievades lauku vērtības!")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+            return False
+
+    def aizvert_pakalpojumu(self):
+        if self.saglabat_pakalpojumu_button.isEnabled():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Question)
+            msg.setWindowTitle("Izmaiņas nav saglabātas")
+            msg.setWindowIcon(QIcon("logo.png"))
+            msg.setText("Jums ir nesaglabātas izmaiņas!\nVai vēlaties vispirms saglabāt tās un tad aizvērt logu vai " +
+                        "aizvērt logu, nesaglabājot izmaiņas?")
+            vai_saglabat = msg.addButton("Saglabāt un aizvērt", QMessageBox.YesRole)
+            msg.addButton("Aizvērt, nesaglabājot", QMessageBox.NoRole)
+            msg.setDefaultButton(QMessageBox.Yes)
+            msg.exec_()
+            if msg.clickedButton() == vai_saglabat:
+                if not self.saglabat_pakalpojumu():
+                    return
+        self.close()
+
+
+class GalvenaisWidget(QWidget):
     def __init__(self, parent=None):
-        super(MyWidget, self).__init__(parent)
-        #
+        super(GalvenaisWidget, self).__init__(parent)
         self.klienti_label = QLabel("Klienti")
         self.klienti_label.setAlignment(Qt.AlignCenter)
         self.klienti_label.setStyleSheet("font: 20px;")
@@ -190,7 +365,6 @@ class MyWidget(QWidget):
         self.klienti_layout.addWidget(self.izveidot_klientu_button)
         self.klienti_layout.addWidget(self.klientu_saraksts_list_widget)
         self.klienti_layout.addLayout(self.klientu_pogas_layout)
-        #
         self.pakalpojumi_label = QLabel("Pakalpojumi")
         self.pakalpojumi_label.setAlignment(Qt.AlignCenter)
         self.pakalpojumi_label.setStyleSheet("font: 20px;")
@@ -207,12 +381,10 @@ class MyWidget(QWidget):
         self.pakalpojumi_layout.addWidget(self.izveidot_pakalpojumu_button)
         self.pakalpojumi_layout.addWidget(self.pakalpojumu_saraksts_list_widget)
         self.pakalpojumi_layout.addLayout(self.pakalpojumu_pogas_layout)
-        #
         self.galvenais_logs_layout = QHBoxLayout()
         self.galvenais_logs_layout.addLayout(self.klienti_layout)
         self.galvenais_logs_layout.addLayout(self.pakalpojumi_layout)
         self.setLayout(self.galvenais_logs_layout)
-        #
         self.izveidot_klientu_button.clicked.connect(self.izveidot_klientu)
         self.klientu_saraksts_list_widget.clicked.connect(self.apskatit_klientu)
         self.importet_klientu_sarakstu_button.clicked.connect(self.importet_klientu_sarakstu)
@@ -338,12 +510,12 @@ class MyWidget(QWidget):
                 msg.exec_()
 
     def izveidot_pakalpojumu(self):
-        pass
+        pakalpojums_widget = PakalpojumsWidget()
+        pakalpojums_widget.show()
 
     def apskatit_pakalpojumu(self):
-        selected_index = self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()
-        print(self.pakalpojumu_saraksts_list_widget.currentItem().text())
-        print(pakalpojumi[selected_index])
+        pakalpojums_widget = PakalpojumsWidget(self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row())
+        pakalpojums_widget.show()
 
     def importet_pakalpojumu_sarakstu(self):
         global pakalpojumi
@@ -475,9 +647,8 @@ class MyWidget(QWidget):
 if __name__ == "__main__":
     klienti = list()
     pakalpojumi = list()
-
     app = QApplication(sys.argv)
-    widget = MyWidget()
+    widget = GalvenaisWidget()
     win = QMainWindow()
     win.setWindowTitle("Skaistumkopšanas salona vadības sistēma")
     win.setWindowIcon(QIcon("logo.png"))
@@ -485,63 +656,3 @@ if __name__ == "__main__":
     win.setFixedSize(600, 550)
     win.show()
     sys.exit(app.exec_())
-
-'''
-while True:
-        print()
-        importa_datnes_nosaukums = input("Lūdzu, ievadiet datnes nosaukumu datu ievadei: ")
-        datnes_saturs = importet()
-        if isinstance(datnes_saturs, list) and len(datnes_saturs) > 0:
-            if "klienta_id" in datnes_saturs[0]:
-                for item in datnes_saturs:
-                    klienti.append(Klients(item["klienta_vards"], item["klienta_uzvards"],
-                                           item["klienta_pers_kods"], item["klienta_talr_num"]))
-                if len(klienti) != 0:
-                    print()
-                    if len(klienti) == 1:
-                        print("Tika veiksmīgi nolasīti dati par vienu klientu:")
-                    else:
-                        print("Tika veiksmīgi nolasīti dati par " + str(len(klienti)) + " klientiem:")
-                    for klients in klienti:
-                        print(klients)
-            elif "pakalpojuma_id" in datnes_saturs[0]:
-                for item in datnes_saturs:
-                    try:
-                        pakalpojumi.append(Pakalpojums(item["pakalpojuma_kategorija"], item["pakalpojuma_nosaukums"],
-                                                       item["pakalpojuma_atlaide"], item["pakalpojuma_cena"],
-                                                       datetime.strptime(item["pakalpojuma_datums"],
-                                                                         "%d.%m.%Y.").date(),
-                                                       datetime.strptime(item["pakalpojuma_sakuma_laiks"],
-                                                                         "%H:%M").time(),
-                                                       datetime.strptime(item["pakalpojuma_beigu_laiks"],
-                                                                         "%H:%M").time()))
-                    except ValueError:
-                        print("Nepareizs skaitļu formāts!")
-                if len(pakalpojumi) != 0:
-                    print()
-                    if len(pakalpojumi) == 1:
-                        print("Tika veiksmīgi nolasīti dati par vienu pakalpojumu:")
-                    else:
-                        print("Tika veiksmīgi nolasīti dati par " + str(len(pakalpojumi)) + " pakalpojumiem:")
-                    for pakalpojums in pakalpojumi:
-                        print(pakalpojums)
-                        print("Pakalpojuma kopsumma: " + str(pakalpojums.pakalpojuma_kopsumma()) + " EUR")
-                        ilgums_minutes = pakalpojums.pakalpojuma_ilgums() / 60
-                        if ilgums_minutes % 10 == 1:
-                            print("Pakalpojuma ilgums: {:.0f} minūte\n".format(ilgums_minutes))
-                        else:
-                            print("Pakalpojuma ilgums: {:.0f} minūtes\n".format(ilgums_minutes))
-            else:
-                print("Nezināma objekta struktūra!")
-        else:
-            print("Nezināma datnes satura struktūra!")
-        while True:
-            ievade = input("Vai vēlaties importēt datus no vēl vienas datnes? y/n: ")
-            if ievade[0].lower() not in ["y", "n"]:
-                print("Jūs ievadījāt nepieņemamo vērtību! Lūdzu, mēģiniet vēlreiz!")
-                continue
-            else:
-                break
-        if ievade[0].lower() == "n":
-            break
-'''
