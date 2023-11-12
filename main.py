@@ -67,12 +67,14 @@ def importet(importa_datnes_nosaukums):
         msg.exec_()
     return list()
 
+
 class KlientsWidget(QWidget):
     def __init__(self, izveletais_klients_index=-1, parent=None):
         super(KlientsWidget, self).__init__(parent)
         self.klients_index = izveletais_klients_index
         self.setWindowIcon(QIcon("logo.png"))
-        self.setFixedSize(500, 200)
+        self.setMinimumSize(500, 200)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.klienta_vards_line_edit = QLineEdit()
         self.klienta_uzvards_line_edit = QLineEdit()
@@ -174,7 +176,8 @@ class PakalpojumsWidget(QWidget):
         super(PakalpojumsWidget, self).__init__(parent)
         self.pakalpojums_index = izveletais_pakalpojums_index
         self.setWindowIcon(QIcon("logo.png"))
-        self.setFixedSize(500, 350)
+        self.setMinimumSize(500, 350)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.pakalpojuma_kategorija_line_edit = QLineEdit()
         self.pakalpojuma_nosaukums_line_edit = QLineEdit()
@@ -417,16 +420,16 @@ class GalvenaisWidget(QWidget):
                         jaunie_klienti.append(Klients(item["klienta_vards"], item["klienta_uzvards"],
                                                       item["klienta_pers_kods"], item["klienta_talr_num"]))
                     if len(jaunie_klienti) != 0:
-                        msgText = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_klienti)) + " klient"
+                        msg_text = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_klienti)) + " klient"
                         if len(jaunie_klienti) % 10 == 1:
-                            msgText += "u!"
+                            msg_text += "u!"
                         else:
-                            msgText += "iem!"
+                            msg_text += "iem!"
                         msg = QMessageBox()
                         msg.setIcon(QMessageBox.Information)
                         msg.setWindowTitle("Imports ir veiksmīgs")
                         msg.setWindowIcon(QIcon("logo.png"))
-                        msg.setText(msgText)
+                        msg.setText(msg_text)
                         msg.setStandardButtons(QMessageBox.Ok)
                         msg.exec_()
                         for klients in jaunie_klienti:
@@ -467,9 +470,9 @@ class GalvenaisWidget(QWidget):
             if len(self.klientu_saraksts_list_widget.selectedIndexes()) > 0:
                 eksportejamie_klienti.append(klienti[self.klientu_saraksts_list_widget.selectedIndexes()[0].row()])
                 eksporta_datnes_nosaukuma_sakums = "klienta_" + str(eksportejamie_klienti[0].klienta_id)
-                msgText = "Tika veiksmīgi eksportēti dati par klientu \"" + \
-                          eksportejamie_klienti[0].klienta_vards + " " + \
-                          eksportejamie_klienti[0].klienta_uzvards + "\"!"
+                msg_text = "Tika veiksmīgi eksportēti dati par klientu \"" + \
+                           eksportejamie_klienti[0].klienta_vards + " " + \
+                           eksportejamie_klienti[0].klienta_uzvards + "\"!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -483,7 +486,7 @@ class GalvenaisWidget(QWidget):
             if len(klienti) > 0:
                 eksportejamie_klienti = klienti
                 eksporta_datnes_nosaukuma_sakums = "klientu"
-                msgText = "Tika veiksmīgi eksportēti dati par visiem klientiem!"
+                msg_text = "Tika veiksmīgi eksportēti dati par visiem klientiem!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -505,7 +508,7 @@ class GalvenaisWidget(QWidget):
                 msg.setIcon(QMessageBox.Information)
                 msg.setWindowTitle("Eksports ir veiksmīgs")
                 msg.setWindowIcon(QIcon("logo.png"))
-                msg.setText(msgText)
+                msg.setText(msg_text)
                 msg.setStandardButtons(QMessageBox.Ok)
                 msg.exec_()
 
@@ -551,16 +554,16 @@ class GalvenaisWidget(QWidget):
                             msg.setStandardButtons(QMessageBox.Ok)
                             msg.exec_()
                     if len(jaunie_pakalpojumi) != 0:
-                        msgText = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_pakalpojumi)) + " pakalpojum"
+                        msg_text = "Tika veiksmīgi nolasīti dati par " + str(len(jaunie_pakalpojumi)) + " pakalpojum"
                         if len(jaunie_pakalpojumi) % 10 == 1:
-                            msgText += "u!"
+                            msg_text += "u!"
                         else:
-                            msgText += "iem!"
+                            msg_text += "iem!"
                         msg = QMessageBox()
                         msg.setIcon(QMessageBox.Information)
                         msg.setWindowTitle("Imports ir veiksmīgs")
                         msg.setWindowIcon(QIcon("logo.png"))
-                        msg.setText(msgText)
+                        msg.setText(msg_text)
                         msg.setStandardButtons(QMessageBox.Ok)
                         msg.exec_()
                         for pakalpojums in jaunie_pakalpojumi:
@@ -602,8 +605,8 @@ class GalvenaisWidget(QWidget):
                 eksportejamie_pakalpojumi.append(
                     pakalpojumi[self.pakalpojumu_saraksts_list_widget.selectedIndexes()[0].row()])
                 eksporta_datnes_nosaukuma_sakums = "pakalpojuma_" + str(eksportejamie_pakalpojumi[0].pakalpojuma_id)
-                msgText = "Tika veiksmīgi eksportēti dati par pakalpojumu \"" + \
-                          eksportejamie_pakalpojumi[0].pakalpojuma_nosaukums + "\"!"
+                msg_text = "Tika veiksmīgi eksportēti dati par pakalpojumu \"" + \
+                           eksportejamie_pakalpojumi[0].pakalpojuma_nosaukums + "\"!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -617,7 +620,7 @@ class GalvenaisWidget(QWidget):
             if len(pakalpojumi) > 0:
                 eksportejamie_pakalpojumi = pakalpojumi
                 eksporta_datnes_nosaukuma_sakums = "pakalpojumu"
-                msgText = "Tika veiksmīgi eksportēti dati par visiem pakalpojumiem!"
+                msg_text = "Tika veiksmīgi eksportēti dati par visiem pakalpojumiem!"
             else:
                 msg = QMessageBox()
                 msg.setIcon(QMessageBox.Critical)
@@ -639,7 +642,7 @@ class GalvenaisWidget(QWidget):
                 msg.setIcon(QMessageBox.Information)
                 msg.setWindowTitle("Eksports ir veiksmīgs")
                 msg.setWindowIcon(QIcon("logo.png"))
-                msg.setText(msgText)
+                msg.setText(msg_text)
                 msg.setStandardButtons(QMessageBox.Ok)
                 msg.exec_()
 
@@ -653,6 +656,7 @@ if __name__ == "__main__":
     win.setWindowTitle("Skaistumkopšanas salona vadības sistēma")
     win.setWindowIcon(QIcon("logo.png"))
     win.setCentralWidget(widget)
-    win.setFixedSize(600, 550)
+    win.setMinimumSize(600, 550)
+    win.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
     win.show()
     sys.exit(app.exec_())

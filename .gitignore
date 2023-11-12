@@ -1,5 +1,7 @@
 venv/
+build/
 .idea/
 /*.json
 !klienti.json
 !pakalpojumi.json
+main.spec
